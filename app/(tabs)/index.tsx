@@ -1,132 +1,146 @@
 import React, { useMemo } from "react";
-import {
-  ActivityIndicator,
-  ImageBackground,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { useRouter } from "expo-router";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import {
-  ArrowRight,
-  BookOpen,
-  Brain,
-  Flame,
-  Headphones,
-  NotebookText,
-  Plus,
-  RotateCcw,
-  Sparkles,
-  Target,
-  Volume2,
+  ArrowRight, Bell, BookOpen, Check, ChevronRight, Flame, Gamepad2,
+  Layers, Target, UserRound, BarChart3, Zap, Volume2,
 } from "lucide-react-native";
+import Svg, {
+  Path, Defs, LinearGradient as SvgLinearGradient, Stop, Rect, Ellipse,
+} from "react-native-svg";
 import * as Speech from "expo-speech";
 import { useApp } from "../../context/AppContext";
-import { DEFAULT_DAILY_GOAL_TARGET, getDailyGoalTarget } from "../../storage";
-import { useEffect, useState } from "react";
 
-const theme = {
-  background: "#090909",
-  surface: "#141414",
-  surfaceRaised: "#1B1A18",
-  border: "#2C2923",
-  text: "#F5F1E8",
-  muted: "#A9A296",
-  gold: "#E8B65A",
-  goldSoft: "#3B2D18",
-  green: "#8CC69A",
+const C = {
+  bg: "#050505",
+  panel: "#111111",
+  border: "#34302A",
+  text: "#F4F0E8",
+  muted: "#AAA49B",
+  orange: "#FF9D20",
 };
 
 const dateKey = (date: Date) =>
   `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 
-function SectionHeading({
-  title,
-  action,
-  onAction,
-}: {
-  title: string;
-  action?: string;
-  onAction?: () => void;
-}) {
-  return (
-    <View style={styles.sectionHeading}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {action && onAction ? (
-        <Pressable onPress={onAction} hitSlop={8} style={styles.sectionAction}>
-          <Text style={styles.sectionActionText}>{action}</Text>
-          <ArrowRight size={14} color={theme.gold} />
-        </Pressable>
-      ) : null}
-    </View>
-  );
-}
-
-function QuickAction({
+function QuickAccess({
   icon: Icon,
   label,
-  detail,
   onPress,
 }: {
   icon: typeof BookOpen;
   label: string;
-  detail: string;
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.quickAction, pressed && styles.pressed]}>
-      <View style={styles.quickIcon}>
-        <Icon size={20} color={theme.gold} strokeWidth={1.9} />
-      </View>
-      <Text style={styles.quickLabel}>{label}</Text>
-      <Text style={styles.quickDetail}>{detail}</Text>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [s.quickCard, pressed && s.pressed]}
+    >
+      <View pointerEvents="none" style={s.quickGloss} />
+      <Icon size={27} color={C.text} strokeWidth={1.7} />
+      <Text style={s.quickLabel}>{label}</Text>
     </Pressable>
   );
 }
 
-export default function HomeScreen() {
-  const router = useRouter();
-  const { words, grammar, isLoading } = useApp();
-  const [goalTarget, setGoalTarget] = useState(DEFAULT_DAILY_GOAL_TARGET);
-
-  useEffect(() => {
-    let active = true;
-    getDailyGoalTarget()
-      .then((value) => {
-        if (active) setGoalTarget(value);
-      })
-      .catch(() => {
-        if (active) setGoalTarget(DEFAULT_DAILY_GOAL_TARGET);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const today = new Date();
-  const todayKey = dateKey(today);
-  const reviewedToday = useMemo(
-    () =>
-      words.filter((word) => {
-        if (!word.lastReviewedAt) return false;
-        const reviewed = new Date(word.lastReviewedAt);
-        return !Number.isNaN(reviewed.getTime()) && dateKey(reviewed) === todayKey;
-      }).length,
-    [words, todayKey]
+function FadeDivider() {
+  return (
+    <Svg width="100%" height={1} viewBox="0 0 300 1" preserveAspectRatio="none">
+      <Defs>
+        <SvgLinearGradient id="focusDividerFade" x1="0" y1="0" x2="1" y2="0">
+          <Stop offset="0" stopColor="#37332E" stopOpacity="0.82" />
+          <Stop offset="0.62" stopColor="#37332E" stopOpacity="0.48" />
+          <Stop offset="1" stopColor="#37332E" stopOpacity="0" />
+        </SvgLinearGradient>
+      </Defs>
+      <Path d="M0 0.5 H300" stroke="url(#focusDividerFade)" strokeWidth={1} />
+    </Svg>
   );
+}
 
-  const streak = useMemo(() => {
-    const activeDays = new Set<string>();
+function ChallengeBackdrop() {
+  return (
+    <Svg pointerEvents="none" style={StyleSheet.absoluteFill} viewBox="0 0 340 170" preserveAspectRatio="none">
+      <Defs>
+        <SvgLinearGradient id="challengeWarmFade" x1="0" y1="0" x2="1" y2="0">
+          <Stop offset="0" stopColor="#4B2B16" stopOpacity="0.72" />
+          <Stop offset="0.48" stopColor="#21170F" stopOpacity="0.55" />
+          <Stop offset="1" stopColor="#111111" stopOpacity="0.98" />
+        </SvgLinearGradient>
+      </Defs>
+      <Rect x="0" y="0" width="340" height="170" rx="22" fill="url(#challengeWarmFade)" />
+      <Ellipse cx="286" cy="86" rx="67" ry="37" transform="rotate(-34 286 86)" fill="none" stroke="#A96B2B" strokeOpacity="0.10" strokeWidth="1.2" />
+      <Ellipse cx="286" cy="86" rx="52" ry="27" transform="rotate(-34 286 86)" fill="none" stroke="#B77732" strokeOpacity="0.16" strokeWidth="1.5" />
+      <Ellipse cx="286" cy="86" rx="35" ry="17" transform="rotate(-34 286 86)" fill="none" stroke="#D28A3D" strokeOpacity="0.19" strokeWidth="2" />
+      <Ellipse cx="286" cy="86" rx="15" ry="7" transform="rotate(-34 286 86)" fill="#E18D34" fillOpacity="0.20" />
+    </Svg>
+  );
+}
+
+function ReviewFadeDivider() {
+  return (
+    <Svg width="100%" height={1} viewBox="0 0 300 1" preserveAspectRatio="none">
+      <Defs>
+        <SvgLinearGradient id="reviewWordDividerFade" x1="0" y1="0" x2="1" y2="0">
+          <Stop offset="0" stopColor="#37332E" stopOpacity="0.82" />
+          <Stop offset="0.62" stopColor="#37332E" stopOpacity="0.48" />
+          <Stop offset="1" stopColor="#37332E" stopOpacity="0" />
+        </SvgLinearGradient>
+      </Defs>
+      <Path d="M0 0.5 H300" stroke="url(#reviewWordDividerFade)" strokeWidth={1} />
+    </Svg>
+  );
+}
+
+function StreakOutline() {
+  return (
+    <View pointerEvents="none" style={s.streakOutline}>
+      <Svg width="100%" height="100%" viewBox="0 0 150 130" preserveAspectRatio="none">
+        <Defs>
+          <SvgLinearGradient id="streakOutlineFade" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor="#E8A35A" stopOpacity="0.92" />
+            <Stop offset="0.48" stopColor="#7A4A1E" stopOpacity="0.82" />
+            <Stop offset="1" stopColor="#C98340" stopOpacity="0.96" />
+          </SvgLinearGradient>
+        </Defs>
+        <Path
+          d="M75 3.9 C89 3.9 108.25 3.25 120 9.1 C131.75 14.95 141.5 27.08 145.5 39 C149.5 50.92 148.25 67.17 144 80.6 C139.75 94.03 132 111.8 120 119.6 C108 127.4 88 127.83 72 127.4 C56 126.97 35.25 124.8 24 117 C12.75 109.2 7 94.03 4.5 80.6 C2 67.17 3.75 48.32 9 36.4 C14.25 24.48 25 14.52 36 9.1 C47 3.68 61 3.9 75 3.9 Z"
+          stroke="#E8A35A"
+          strokeWidth="6"
+          strokeOpacity="0.16"
+          fill="none"
+        />
+        <Path
+          d="M75 3.9 C89 3.9 108.25 3.25 120 9.1 C131.75 14.95 141.5 27.08 145.5 39 C149.5 50.92 148.25 67.17 144 80.6 C139.75 94.03 132 111.8 120 119.6 C108 127.4 88 127.83 72 127.4 C56 126.97 35.25 124.8 24 117 C12.75 109.2 7 94.03 4.5 80.6 C2 67.17 3.75 48.32 9 36.4 C14.25 24.48 25 14.52 36 9.1 C47 3.68 61 3.9 75 3.9 Z"
+          stroke="url(#streakOutlineFade)"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+          fill="none"
+        />
+      </Svg>
+    </View>
+  );
+}export default function HomeScreen() {
+  const router = useRouter();
+  const { words, grammar } = useApp();
+  const now = new Date();
+  const today = dateKey(now);
+
+
+  const activeDays = useMemo(() => {
+    const days = new Set<string>();
     [...words, ...grammar].forEach((item) => {
       if (!item.lastReviewedAt) return;
       const date = new Date(item.lastReviewedAt);
-      if (!Number.isNaN(date.getTime())) activeDays.add(dateKey(date));
+      if (!Number.isNaN(date.getTime())) days.add(dateKey(date));
     });
+    return days;
+  }, [words, grammar]);
 
-    const cursor = new Date(today);
+  const streak = useMemo(() => {
+    const cursor = new Date(now);
     if (!activeDays.has(dateKey(cursor))) cursor.setDate(cursor.getDate() - 1);
     let count = 0;
     while (activeDays.has(dateKey(cursor)) && count < 365) {
@@ -134,164 +148,289 @@ export default function HomeScreen() {
       cursor.setDate(cursor.getDate() - 1);
     }
     return count;
-  }, [words, grammar, todayKey]);
+  }, [activeDays, today]);
 
-  const progress = Math.min(reviewedToday / Math.max(goalTarget, 1), 1);
-  const greeting =
-    today.getHours() < 12 ? "Good morning" : today.getHours() < 18 ? "Good afternoon" : "Good evening";
-  const nextLesson = grammar.find((item) => item.status !== "mastered");
-  const recentWords = [...words].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
+  const reviewedToday = useMemo(
+    () => words.filter((word) => {
+      if (!word.lastReviewedAt) return false;
+      const date = new Date(word.lastReviewedAt);
+      return !Number.isNaN(date.getTime()) && dateKey(date) === today;
+    }).length,
+    [words, today],
+  );
 
-  const openQuiz = () => router.push("/quiz-setup");
-  const speak = (word: string) =>
-    Speech.speak(word, { language: "es-ES", rate: 0.88 });
+  const week = useMemo(() => {
+    const monday = new Date(now);
+    monday.setHours(0, 0, 0, 0);
+    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + index);
+      const key = dateKey(date);
+      return {
+        label: ["M", "T", "W", "T", "F", "S", "S"][index],
+        done: activeDays.has(key),
+        today: key === today,
+      };
+    });
+  }, [activeDays, today]);
 
-  if (isLoading) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator color={theme.gold} size="large" />
-      </View>
-    );
-  }
+  const lesson = grammar.find((item) => item.status !== "mastered");
+  const goQuiz = () => router.push("/quiz-setup");
+  const reviewWords = words.slice(0, 3);
+
+  const speakWord = (value: string) => {
+    Speech.stop();
+    Speech.speak(value, { language: "es-ES", rate: 0.88 });
+  };
 
   return (
-    <View style={styles.screen}>
-      <SafeAreaView edges={["top"]} style={styles.safeArea}>
+    <View style={s.screen}>
+      <SafeAreaView edges={["top"]} style={s.safe}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={s.content}
         >
-          <View style={styles.topBar}>
-            <View>
-              <Text style={styles.eyebrow}>LEXO · ESPAÑOL</Text>
-              <Text style={styles.greeting}>{greeting} <Text style={styles.wave}>¡Hola!</Text></Text>
-              <Text style={styles.subGreeting}>A little Spanish, every day.</Text>
-            </View>
-            <View style={styles.streakPill}>
-              <Flame size={16} color={theme.gold} fill={theme.gold} />
-              <Text style={styles.streakNumber}>{streak}</Text>
-              <Text style={styles.streakLabel}>day streak</Text>
-            </View>
-          </View>
-
-          <ImageBackground
-            source={require("../../assets/spanish-home-hero.jpg")}
-            resizeMode="cover"
-            imageStyle={styles.heroImage}
-            style={styles.hero}
-          >
-            <View style={styles.heroShade} />
-            <View style={styles.heroContent}>
-              <View style={styles.heroTag}>
-                <Sparkles size={12} color={theme.gold} />
-                <Text style={styles.heroTagText}>YOUR SPANISH JOURNEY</Text>
-              </View>
-              <Text style={styles.heroTitle}>Make Spanish{'\n'}part of your day.</Text>
-              <Text style={styles.heroCopy}>Build vocabulary. Understand grammar. Remember what you learn.</Text>
-              <Pressable onPress={() => router.push("/grammar")} style={styles.heroButton}>
-                <Text style={styles.heroButtonText}>Continue learning</Text>
-                <ArrowRight size={16} color="#17120A" />
+          <View style={s.topBar}>
+            <Text style={s.logo}>Parables<Text style={s.slash}>/</Text></Text>
+            <View style={s.topActions}>
+              <Pressable style={s.bell} accessibilityLabel="Notifications">
+                <Bell size={22} color={C.text} />
+                <View style={s.dot} />
+              </Pressable>
+              <Pressable style={s.avatar} onPress={() => router.push("/(tabs)/profile")}>
+                <UserRound size={21} color={C.text} />
               </Pressable>
             </View>
-          </ImageBackground>
-
-          <View style={styles.goalCard}>
-            <View style={styles.goalTop}>
-              <View>
-                <Text style={styles.cardEyebrow}>DAILY WORD GOAL</Text>
-                <Text style={styles.goalTitle}>A steady rhythm wins.</Text>
-              </View>
-              <View style={styles.goalIcon}>
-                <Target size={19} color={theme.gold} />
-              </View>
-            </View>
-            <View style={styles.goalStats}>
-              <Text style={styles.goalCount}>{reviewedToday}<Text style={styles.goalTotal}> / {goalTarget}</Text></Text>
-              <Text style={styles.goalPercent}>{Math.round(progress * 100)}% complete</Text>
-            </View>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-            </View>
-            <Text style={styles.goalFootnote}>
-              {reviewedToday >= goalTarget
-                ? "Daily target reached. ¡Buen trabajo!"
-                : `${Math.max(goalTarget - reviewedToday, 0)} more reviewed ${goalTarget - reviewedToday === 1 ? "word" : "words"} to reach your target.`}
-            </Text>
           </View>
 
-          <SectionHeading title="Pick up where you left off" action="Grammar" onAction={() => router.push("/grammar")} />
-          <Pressable
-            onPress={() => nextLesson ? router.push(`/grammar-detail?id=${nextLesson.id}`) : router.push("/grammar")}
-            style={({ pressed }) => [styles.continueCard, pressed && styles.pressed]}
-          >
-            <View style={styles.lessonBadge}><NotebookText size={18} color={theme.gold} /></View>
-            <View style={styles.lessonCopy}>
-              <Text style={styles.cardEyebrow}>GRAMMAR · SPANISH FOUNDATIONS</Text>
-              <Text style={styles.lessonTitle}>{nextLesson?.grammarPoint ?? "Start with the foundations"}</Text>
-              <Text style={styles.lessonSubtitle}>
-                {nextLesson?.meaning ?? "Explore essential Spanish grammar and build your base."}
-              </Text>
+          <View style={s.greetingRow}>
+            <View style={s.greetingCopy}>
+              <Text style={s.greeting}>Hola, Yash</Text>
+              <Svg width={76} height={14} viewBox="0 0 76 14" style={s.curve}>
+                <Defs>
+                  <SvgLinearGradient id="signatureFade" x1="0" y1="0" x2="1" y2="0">
+                    <Stop offset="0" stopColor={C.orange} stopOpacity="1" />
+                    <Stop offset="0.42" stopColor={C.orange} stopOpacity="0.92" />
+                    <Stop offset="0.78" stopColor={C.orange} stopOpacity="0.48" />
+                    <Stop offset="1" stopColor={C.orange} stopOpacity="0" />
+                  </SvgLinearGradient>
+                </Defs>
+                <Path
+                  d="M1 10.8 C 16 3.2, 34 1.5, 49 3.1 C 59 4.1, 67 5.1, 74 5.4
+                     C 67 6.2, 59 5.7, 49 4.5 C 33 3.1, 16 6.2, 1 12.5 Z"
+                  fill="url(#signatureFade)"
+                />
+              </Svg>
+              <Text style={s.subGreeting}>Let's learn some Spanish today.</Text>
             </View>
-            <ArrowRight size={19} color={theme.gold} />
+            <View style={s.streak}>
+              <StreakOutline />
+              <View style={s.streakFlameCutout}><Flame size={32} color={C.orange} fill={C.orange} /></View>
+              <Text style={s.streakNumber}>{streak}</Text>
+              <Text style={s.streakLabel}>day streak</Text>
+            </View>
+          </View>
+
+          <View style={s.weekRow}>
+            {week.map((day, index) => (
+              <View key={`${day.label}-${index}`} style={s.weekDay}>
+                <Text style={[s.weekLabel, day.today && s.weekLabelToday]}>{day.label}</Text>
+                <View style={[
+                  s.weekCircle,
+                  day.done && s.weekDone,
+                  day.today && !day.done && s.weekToday,
+                ]}>
+                  {day.done ? <Check size={16} color="#170F04" strokeWidth={3} /> : null}
+                </View>
+              </View>
+            ))}
+          </View>
+
+          <Pressable
+            onPress={() => lesson ? router.push(`/grammar-detail?id=${lesson.id}`) : router.push("/(tabs)/grammar")}
+            style={({ pressed }) => [s.lessonCard, pressed && s.pressed]}
+          >
+            <View style={s.lessonContent}>
+              <Text style={s.lessonEyebrow}>Continue learning</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit style={s.lessonTitle}>
+                {lesson?.grammarPoint ?? "Present tense"}
+              </Text>
+              <Text numberOfLines={2} style={s.lessonDescription}>
+                {lesson?.meaning ?? "Talk about habits and facts"}
+              </Text>
+              <View style={s.lessonBottom}>
+                <View style={s.lessonProgress}>
+                  <Text style={s.lessonMeta}>Lesson 3 of 6  ·  8 min</Text>
+                  <View style={s.track}><View style={s.fill} /></View>
+                </View>
+                <View style={s.continueButton}>
+                  <Text style={s.continueText}>Continue</Text>
+                  <ArrowRight size={17} color="#170F04" />
+                </View>
+              </View>
+            </View>
           </Pressable>
 
-          <SectionHeading title="Your shortcuts" />
-          <View style={styles.quickGrid}>
-            <QuickAction icon={Plus} label="New words" detail="Grow your list" onPress={() => router.push("/add-word")} />
-            <QuickAction icon={RotateCcw} label="Review" detail="Revisit words" onPress={openQuiz} />
-            <QuickAction icon={NotebookText} label="Grammar" detail="Learn the rules" onPress={() => router.push("/grammar")} />
-            <QuickAction icon={Brain} label="Practice" detail="Test yourself" onPress={openQuiz} />
+          <View style={s.sectionHead}>
+            <View style={s.sectionTitleWrap}>
+              <Target size={19} color={C.orange} strokeWidth={2.1} />
+              <Text style={s.sectionTitle}>Today's focus</Text>
+            </View>
+            <Text style={s.sectionMeta}>0 of 3</Text>
           </View>
 
-          <SectionHeading title="Your vocabulary" action="See all" onAction={() => router.push("/words")} />
-          {recentWords.length > 0 ? (
-            <View style={styles.wordsCard}>
-              {recentWords.map((word, index) => (
+          <View style={s.focusList}>
+            <Pressable onPress={goQuiz} style={s.focusRow}>
+              <View style={s.focusDone}><Check size={17} color="#170F04" strokeWidth={3} /></View>
+              <Text style={[s.focusText, s.completed]}>Review 20 words</Text>
+              <ChevronRight size={19} color={C.text} />
+              <View pointerEvents="none" style={s.focusDivider}><FadeDivider /></View>
+            </Pressable>
+            <Pressable onPress={() => router.push("/add-word")} style={s.focusRow}>
+              <View style={s.focusEmpty} />
+              <Text style={s.focusText}>Learn 10 new words</Text>
+              <ChevronRight size={19} color={C.text} />
+              <View pointerEvents="none" style={s.focusDivider}><FadeDivider /></View>
+            </Pressable>
+            <Pressable onPress={() => router.push("/(tabs)/grammar")} style={s.focusRow}>
+              <View style={s.focusEmpty} />
+              <Text style={s.focusText}>Practice grammar (5 min)</Text>
+              <ChevronRight size={19} color={C.text} />
+              <View pointerEvents="none" style={s.focusDivider}><FadeDivider /></View>
+            </Pressable>
+          </View>
+
+          <Text style={s.quickHeading}>Quick access</Text>
+          <View style={s.quickRow}>
+            <QuickAccess icon={BookOpen} label="Vocabulary" onPress={() => router.push("/(tabs)/words")} />
+            <QuickAccess icon={Gamepad2} label="Quiz" onPress={goQuiz} />
+            <QuickAccess icon={Layers} label="Grammar" onPress={() => router.push("/(tabs)/grammar")} />
+            <QuickAccess icon={BarChart3} label="Progress" onPress={() => router.push("/(tabs)/profile")} />
+          </View>
+
+          {/* Scroll continuation based on the supplied second reference screen. */}
+          <View style={s.lowerSection}>
+            <View style={s.pathHead}>
+              <Text style={s.serifSectionTitle}>Your path</Text>
+              <Pressable onPress={() => router.push("/(tabs)/grammar")} style={s.pathLink}>
+                <Text style={s.pathLevel}>A1</Text>
+                <Text style={s.pathLevelName}>Beginner</Text>
+                <ChevronRight size={18} color={C.text} />
+              </Pressable>
+            </View>
+            <View style={s.pathProgressRow}>
+              <View style={s.pathTrack}><View style={s.pathFill} /></View>
+              <Text style={s.pathPercent}>28% complete</Text>
+            </View>
+          </View>
+
+          <View style={s.lowerSection}>
+            <Pressable onPress={goQuiz} style={s.reviewHeading}>
+              <View style={s.reviewTitleWrap}>
+                <Zap size={19} color="#EFB45C" strokeWidth={1.8} />
+                <Text style={s.serifSectionTitle}>Due for review</Text>
+              </View>
+              <View style={s.reviewCount}>
+                <Text style={s.reviewCountText}>28 words</Text>
+                <ChevronRight size={18} color={C.muted} />
+              </View>
+            </Pressable>
+            <View style={s.reviewList}>
+              {(reviewWords.length ? reviewWords : [
+                { id: "sample-cafe", word: "café", meaning: "coffee", tags: ["noun"] },
+                { id: "sample-viajar", word: "viajar", meaning: "to travel", tags: ["verb"] },
+                { id: "sample-casa", word: "casa", meaning: "house", tags: ["noun"] },
+              ]).map((word: any, index: number) => (
                 <Pressable
                   key={word.id}
-                  onPress={() => router.push(`/word-detail?id=${word.id}`)}
-                  style={[styles.wordRow, index > 0 && styles.wordDivider]}
+                  onPress={() => word.id.startsWith("sample-") ? goQuiz() : router.push(`/word-detail?id=${word.id}`)}
+                  style={s.reviewWordRow}
                 >
-                  <View style={styles.wordText}>
-                    <Text style={styles.spanishWord}>{word.word}</Text>
-                    <Text style={styles.wordMeaning}>{word.meaning}</Text>
-                  </View>
-                  <Pressable onPress={() => speak(word.word)} hitSlop={10} style={styles.soundButton}>
-                    <Volume2 size={17} color={theme.gold} />
+                  <Pressable
+                    onPress={(event) => {
+                      event.stopPropagation?.();
+                      speakWord(word.word);
+                    }}
+                    style={s.soundButton}
+                  >
+                    <Volume2 size={17} color="#D5D0C8" strokeWidth={1.8} />
                   </Pressable>
+                  <Text numberOfLines={1} style={s.reviewWord}>{word.word}</Text>
+                  <Text numberOfLines={1} style={s.wordType}>
+                    {word.tags?.[0] ?? (index === 1 ? "verb" : "noun")}
+                  </Text>
+                  <Text numberOfLines={1} style={s.wordMeaning}>{word.meaning}</Text>
+                  {index < 2 ? <View pointerEvents="none" style={s.reviewDivider}><ReviewFadeDivider /></View> : null}
                 </Pressable>
               ))}
             </View>
-          ) : (
-            <View style={styles.emptyCard}>
-              <BookOpen size={21} color={theme.gold} />
-              <View style={styles.emptyCopy}>
-                <Text style={styles.emptyTitle}>Your word collection starts here</Text>
-                <Text style={styles.emptySubtitle}>Add a word you want to remember, then practice it whenever you like.</Text>
+          </View>
+
+          <View style={s.challengeCard}>
+            <ChallengeBackdrop />
+            <View style={s.challengeTop}>
+              <View style={s.challengeIcon}>
+                <Target size={42} color={C.orange} strokeWidth={1.8} />
               </View>
-              <Pressable onPress={() => router.push("/add-word")} hitSlop={8}>
-                <Plus size={20} color={theme.gold} />
-              </Pressable>
+              <View style={s.challengeCopy}>
+                <Text style={s.challengeTitle}>Daily challenge</Text>
+                <Text style={s.challengeDescription}>A 5-minute mix: words, grammar and usage.</Text>
+              </View>
             </View>
-          )}
+            <Pressable onPress={goQuiz} style={({ pressed }) => [s.challengeButton, pressed && s.pressed]}>
+              <Text style={s.challengeButtonText}>Start Challenge</Text>
+              <ChevronRight size={20} color="#170F04" strokeWidth={2.4} />
+            </Pressable>
+          </View>
 
-          <SectionHeading title="Learning path" action="Explore" onAction={() => router.push("/grammar")} />
-          <Pressable onPress={() => router.push("/grammar")} style={({ pressed }) => [styles.pathCard, pressed && styles.pressed]}>
-            <View style={styles.pathTop}>
-              <View style={styles.levelPill}><Text style={styles.levelText}>A1 · BEGINNER</Text></View>
-              <Text style={styles.pathStatus}>FOUNDATIONS</Text>
+          <View style={s.lowerSection}>
+            <View style={s.progressHeading}>
+              <View style={s.reviewTitleWrap}>
+                <BarChart3 size={21} color={C.orange} strokeWidth={2.4} />
+                <Text style={s.sectionTitle}>Your progress</Text>
+              </View>
+              <Text style={s.progressPeriod}>This week</Text>
             </View>
-            <Text style={styles.pathTitle}>Start speaking with confidence.</Text>
-            <Text style={styles.pathDescription}>Build the essentials: pronunciation, simple sentences, articles, and everyday verbs.</Text>
-            <View style={styles.pathBottom}>
-              <Text style={styles.pathLink}>Explore beginner grammar</Text>
-              <ArrowRight size={15} color={theme.gold} />
+            <View style={s.statsRow}>
+              <View style={s.stat}>
+                <Text style={s.statValue}>238</Text>
+                <Text style={s.statLabel}>words learned</Text>
+              </View>
+              <View style={s.statDivider} />
+              <View style={s.stat}>
+                <View style={s.accuracyLine}>
+                  <Text style={s.statValue}>87%</Text>
+                  <Text style={s.upArrow}>▲</Text>
+                </View>
+                <Text style={s.statLabel}>accuracy</Text>
+              </View>
+              <View style={s.statDivider} />
+              <View style={s.stat}>
+                <Text style={s.statValue}>14 <Text style={s.statTotal}>/ 50</Text></Text>
+                <Text style={s.statLabel}>grammar lessons</Text>
+              </View>
             </View>
-          </Pressable>
+          </View>
 
-          <View style={styles.bottomNote}>
-            <Headphones size={15} color={theme.muted} />
-            <Text style={styles.bottomNoteText}>Small steps. Lasting progress.</Text>
+          <View style={s.quoteBlock}>
+            <Text style={s.quoteMark}>“</Text>
+            <Text style={s.quoteText}>Un pequeño progreso cada día{"\n"}hace una gran diferencia.</Text>
+            <Svg width={96} height={16} viewBox="0 0 96 16">
+              <Defs>
+                <SvgLinearGradient id="quoteSignatureFade" x1="0" y1="0" x2="1" y2="0">
+                  <Stop offset="0" stopColor={C.orange} stopOpacity="0.98" />
+                  <Stop offset="0.48" stopColor={C.orange} stopOpacity="0.82" />
+                  <Stop offset="0.82" stopColor={C.orange} stopOpacity="0.38" />
+                  <Stop offset="1" stopColor={C.orange} stopOpacity="0" />
+                </SvgLinearGradient>
+              </Defs>
+              <Path
+                d="M2 11.8 C 23 3.2, 49 2.1, 69 5 C 79 6.4, 87 7.2, 94 7.4
+                   C 86 8.2, 78 7.8, 68 6.4 C 48 4, 23 6.3, 2 13.4 Z"
+                fill="url(#quoteSignatureFade)"
+              />
+            </Svg>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -299,76 +438,114 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: theme.background },
-  safeArea: { flex: 1 },
-  loading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: theme.background },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 34 },
-  topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 10, paddingBottom: 18 },
-  eyebrow: { color: theme.gold, fontSize: 10, fontWeight: "800", letterSpacing: 2 },
-  greeting: { color: theme.text, fontSize: 25, fontWeight: "800", marginTop: 7, letterSpacing: -0.6 },
-  wave: { color: theme.gold },
-  subGreeting: { color: theme.muted, fontSize: 13, marginTop: 4 },
-  streakPill: { flexDirection: "row", alignItems: "center", backgroundColor: theme.surfaceRaised, borderColor: theme.border, borderWidth: 1, borderRadius: 30, paddingHorizontal: 11, paddingVertical: 9, gap: 5 },
-  streakNumber: { color: theme.text, fontSize: 14, fontWeight: "800" },
-  streakLabel: { color: theme.muted, fontSize: 10, fontWeight: "600" },
-  hero: { height: 235, borderRadius: 22, overflow: "hidden", justifyContent: "flex-end", marginBottom: 18, backgroundColor: "#282117" },
-  heroImage: { borderRadius: 22 },
-  heroShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(0,0,0,0.43)" },
-  heroContent: { padding: 19 },
-  heroTag: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: "rgba(10,10,10,0.68)", paddingHorizontal: 9, paddingVertical: 6, borderRadius: 20, marginBottom: 10 },
-  heroTagText: { color: theme.gold, fontSize: 9, fontWeight: "800", letterSpacing: 1.1 },
-  heroTitle: { color: "#FFFFFF", fontSize: 28, fontWeight: "800", lineHeight: 31, letterSpacing: -0.7 },
-  heroCopy: { color: "#E8E2D7", fontSize: 12, lineHeight: 17, maxWidth: 280, marginTop: 7 },
-  heroButton: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: 10, backgroundColor: theme.gold, borderRadius: 24, paddingHorizontal: 15, paddingVertical: 10, marginTop: 13 },
-  heroButtonText: { color: "#17120A", fontSize: 12, fontWeight: "800" },
-  goalCard: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 18, padding: 16, marginBottom: 25 },
-  goalTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  cardEyebrow: { color: theme.gold, fontSize: 9, fontWeight: "800", letterSpacing: 1.15 },
-  goalTitle: { color: theme.text, fontSize: 16, fontWeight: "700", marginTop: 5 },
-  goalIcon: { width: 36, height: 36, borderRadius: 12, backgroundColor: theme.goldSoft, alignItems: "center", justifyContent: "center" },
-  goalStats: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 15 },
-  goalCount: { color: theme.text, fontSize: 27, fontWeight: "800" },
-  goalTotal: { color: theme.muted, fontSize: 15, fontWeight: "600" },
-  goalPercent: { color: theme.gold, fontSize: 11, fontWeight: "700" },
-  progressTrack: { height: 7, borderRadius: 8, backgroundColor: "#302B22", overflow: "hidden", marginTop: 9 },
-  progressFill: { height: "100%", borderRadius: 8, backgroundColor: theme.gold },
-  goalFootnote: { color: theme.muted, fontSize: 11, marginTop: 9 },
-  sectionHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 7, marginBottom: 12 },
-  sectionTitle: { color: theme.text, fontSize: 17, fontWeight: "800", letterSpacing: -0.25 },
-  sectionAction: { flexDirection: "row", alignItems: "center", gap: 4 },
-  sectionActionText: { color: theme.gold, fontSize: 11, fontWeight: "700" },
-  continueCard: { flexDirection: "row", alignItems: "center", backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 17, padding: 14, gap: 12, marginBottom: 24 },
-  lessonBadge: { width: 42, height: 42, borderRadius: 14, backgroundColor: theme.goldSoft, alignItems: "center", justifyContent: "center" },
-  lessonCopy: { flex: 1 },
-  lessonTitle: { color: theme.text, fontSize: 15, fontWeight: "700", marginTop: 5 },
-  lessonSubtitle: { color: theme.muted, fontSize: 11, marginTop: 4, lineHeight: 15 },
-  quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 25 },
-  quickAction: { width: "48%", flexGrow: 1, backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 16, padding: 13, minHeight: 112 },
-  pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
-  quickIcon: { width: 34, height: 34, borderRadius: 11, backgroundColor: theme.goldSoft, alignItems: "center", justifyContent: "center", marginBottom: 9 },
-  quickLabel: { color: theme.text, fontSize: 13, fontWeight: "700" },
-  quickDetail: { color: theme.muted, fontSize: 10, marginTop: 4 },
-  wordsCard: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 14, marginBottom: 25 },
-  wordRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 13 },
-  wordDivider: { borderTopWidth: 1, borderTopColor: theme.border },
-  wordText: { flex: 1 },
-  spanishWord: { color: theme.text, fontSize: 16, fontWeight: "800" },
-  wordMeaning: { color: theme.muted, fontSize: 11, marginTop: 3 },
-  soundButton: { width: 34, height: 34, borderRadius: 12, backgroundColor: theme.goldSoft, alignItems: "center", justifyContent: "center" },
-  emptyCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 17, padding: 15, marginBottom: 25 },
-  emptyCopy: { flex: 1 },
-  emptyTitle: { color: theme.text, fontSize: 13, fontWeight: "700" },
-  emptySubtitle: { color: theme.muted, fontSize: 10, lineHeight: 15, marginTop: 4 },
-  pathCard: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 18, padding: 16, marginBottom: 20 },
-  pathTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  levelPill: { backgroundColor: theme.goldSoft, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6 },
-  levelText: { color: theme.gold, fontSize: 9, fontWeight: "800", letterSpacing: 0.8 },
-  pathStatus: { color: theme.muted, fontSize: 9, fontWeight: "700", letterSpacing: 1 },
-  pathTitle: { color: theme.text, fontSize: 18, fontWeight: "800", marginTop: 14 },
-  pathDescription: { color: theme.muted, fontSize: 11, lineHeight: 17, marginTop: 6 },
-  pathBottom: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: theme.border, marginTop: 14, paddingTop: 12 },
-  pathLink: { color: theme.gold, fontSize: 11, fontWeight: "700" },
-  bottomNote: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, paddingVertical: 10 },
-  bottomNoteText: { color: theme.muted, fontSize: 10, letterSpacing: 0.4 },
+const s = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.bg },
+  safe: { flex: 1 },
+  content: { paddingHorizontal: 24, paddingTop: 2, paddingBottom: 88, flexGrow: 1 },
+  topBar: { height: 42, flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 0 },
+  logo: { color: C.text, fontSize: 22, fontWeight: "800", letterSpacing: -0.7 },
+  slash: { color: C.orange, fontSize: 25, fontWeight: "500" },
+  topActions: { flexDirection: "row", alignItems: "center", gap: 17 },
+  bell: { width: 32, height: 36, alignItems: "center", justifyContent: "center" },
+  dot: { position: "absolute", right: 3, top: 3, width: 8, height: 8, borderRadius: 4, backgroundColor: C.orange },
+  avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#201B15", borderWidth: 1, borderColor: "#59432A", alignItems: "center", justifyContent: "center" },
+  greetingRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 5 },
+  greetingCopy: { flex: 1, paddingRight: 5 },
+  greeting: { color: C.text, fontFamily: "serif", fontSize: 27, lineHeight: 33 },
+  curve: { marginTop: -1, marginBottom: 0, marginLeft: -1 },
+  subGreeting: { color: "#D0CBC3", fontSize: 11, lineHeight: 15 },
+  streak: { width: 112, height: 98, alignItems: "center", justifyContent: "center", backgroundColor: "transparent", marginRight: 0, position: "relative" },
+  streakFlameCutout: { position: "absolute", top: -12, zIndex: 3, width: 42, height: 42, borderRadius: 21, backgroundColor: C.bg, alignItems: "center", justifyContent: "center" },
+  streakOutline: { position: "absolute", width: 112, height: 98, left: 0, top: 0 },
+  streakNumber: { color: C.text, fontSize: 22, fontWeight: "800", marginTop: -3 },
+  streakLabel: { color: C.muted, fontSize: 10 },
+  weekRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 10, marginBottom: 23 },
+  weekDay: { alignItems: "center", gap: 5 },
+  weekLabel: { color: C.muted, fontSize: 12 },
+  weekLabelToday: { color: C.text },
+  weekCircle: { width: 25, height: 25, borderRadius: 13, borderWidth: 1.8, borderColor: "#343434", alignItems: "center", justifyContent: "center" },
+  weekDone: { backgroundColor: C.orange, borderColor: C.orange },
+  weekToday: { borderColor: C.orange, borderWidth: 2.5 },
+  lessonCard: { minHeight: 154, borderRadius: 20, overflow: "hidden", borderWidth: 1, borderColor: "#76552F", backgroundColor: "#111111", marginBottom: 20, justifyContent: "center" },
+  lessonContent: { paddingHorizontal: 17, paddingVertical: 11 },
+  lessonEyebrow: { color: "#D8D1C7", fontSize: 12, marginBottom: 4 },
+  lessonTitle: { color: "#FFF8ED", fontFamily: "serif", fontSize: 23, fontWeight: "700", lineHeight: 28 },
+  lessonDescription: { color: "#D9D2C8", fontSize: 11, marginTop: 4 },
+  lessonBottom: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 8, marginTop: 11 },
+  lessonProgress: { flex: 1 },
+  lessonMeta: { color: C.text, fontSize: 9, marginBottom: 7 },
+  track: { height: 5, borderRadius: 5, backgroundColor: "#39342D", overflow: "hidden" },
+  fill: { width: "56%", height: "100%", backgroundColor: C.orange, borderRadius: 5 },
+  continueButton: { minWidth: 100, height: 35, borderRadius: 19, backgroundColor: C.orange, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+  continueText: { color: "#170F04", fontSize: 11, fontWeight: "800" },
+  sectionHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 3 },
+  sectionTitleWrap: { flexDirection: "row", alignItems: "center", gap: 9 },
+  sectionTitle: { color: C.text, fontSize: 17, fontWeight: "700" },
+  sectionMeta: { color: "#D0CBC3", fontSize: 12 },
+  focusList: { marginBottom: 12 },
+  focusRow: { minHeight: 38, flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 6, position: "relative" },
+  focusDone: { width: 23, height: 23, borderRadius: 12, backgroundColor: C.orange, alignItems: "center", justifyContent: "center" },
+  focusEmpty: { width: 23, height: 23, borderRadius: 12, borderWidth: 1.8, borderColor: "#555555" },
+  focusText: { flex: 1, color: C.text, fontSize: 12 },
+  completed: { color: "#85817B", textDecorationLine: "line-through" },
+  focusDivider: { position: "absolute", bottom: 0, left: 39, right: 0, height: 1 },
+  quickHeading: { color: "#B9B4AD", fontSize: 14, marginBottom: 8 },
+  quickRow: { flexDirection: "row", gap: 8, marginBottom: 0 },
+  quickCard: {
+    flex: 1, aspectRatio: 1, maxHeight: 96, borderRadius: 16, borderWidth: 1,
+    borderColor: "#484848", borderTopColor: "#69635B", backgroundColor: "#101010",
+    alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 2,
+    shadowColor: "#FFFFFF", shadowOffset: { width: 0, height: -1 }, shadowOpacity: 0.08,
+    shadowRadius: 5, elevation: 2, overflow: "hidden",
+  },
+  quickGloss: { position: "absolute", top: 1, left: 9, right: 9, height: 1, backgroundColor: "rgba(255,255,255,0.20)" },
+  quickLabel: { color: C.text, fontSize: 9, textAlign: "center" },
+  lowerSection: { marginTop: 27 },
+  pathHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  serifSectionTitle: { color: C.text, fontFamily: "serif", fontSize: 18, fontWeight: "700" },
+  pathLink: { flexDirection: "row", alignItems: "center", gap: 5 },
+  pathLevel: { color: C.orange, fontSize: 14, fontWeight: "700" },
+  pathLevelName: { color: "#D4D0CA", fontSize: 13 },
+  pathProgressRow: { flexDirection: "row", alignItems: "center", gap: 14, marginTop: 12 },
+  pathTrack: { flex: 1, height: 11, borderRadius: 8, backgroundColor: "#292A2D", overflow: "hidden" },
+  pathFill: { width: "28%", height: "100%", borderRadius: 8, backgroundColor: C.orange },
+  pathPercent: { color: "#D4D0CA", fontSize: 12 },
+  reviewHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 9 },
+  reviewTitleWrap: { flexDirection: "row", alignItems: "center", gap: 9 },
+  reviewCount: { flexDirection: "row", alignItems: "center", gap: 4 },
+  reviewCountText: { color: "#C8C3BC", fontSize: 12 },
+  reviewList: { paddingHorizontal: 5 },
+  reviewWordRow: { minHeight: 49, flexDirection: "row", alignItems: "center", gap: 12, position: "relative" },
+  soundButton: { width: 34, height: 34, borderRadius: 17, backgroundColor: "#252525", alignItems: "center", justifyContent: "center" },
+  reviewWord: { color: C.text, fontFamily: "serif", fontSize: 16, fontWeight: "700", minWidth: 62 },
+  wordType: { color: "#918C85", fontSize: 12, flex: 1 },
+  wordMeaning: { color: "#D1CCC4", fontSize: 12, textAlign: "right", maxWidth: "32%" },
+  reviewDivider: { position: "absolute", left: 46, right: 0, bottom: 0, height: 1 },
+  challengeCard: {
+    marginTop: 24, minHeight: 164, borderRadius: 22, borderWidth: 1,
+    borderColor: "#3E342B", backgroundColor: "#17120E", padding: 17,
+    overflow: "hidden", justifyContent: "space-between",
+  },
+  challengeDecor: { position: "absolute", right: 8, top: 15, opacity: 0.12, transform: [{ rotate: "-24deg" }] },
+  challengeTop: { flexDirection: "row", alignItems: "center", gap: 13 },
+  challengeIcon: { width: 64, height: 64, alignItems: "center", justifyContent: "center" },
+  challengeCopy: { flex: 1, paddingRight: 6 },
+  challengeTitle: { color: C.text, fontSize: 18, fontWeight: "700", marginBottom: 4 },
+  challengeDescription: { color: "#C8C1B8", fontSize: 12, lineHeight: 17, maxWidth: 205 },
+  challengeButton: { alignSelf: "center", minWidth: 175, height: 43, borderRadius: 24, backgroundColor: C.orange, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 13, paddingHorizontal: 18 },
+  challengeButtonText: { color: "#170F04", fontSize: 13, fontWeight: "800" },
+  progressHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 18 },
+  progressPeriod: { color: "#C8C3BC", fontSize: 12 },
+  statsRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  stat: { flex: 1, alignItems: "center", gap: 3 },
+  statValue: { color: C.text, fontSize: 20, fontWeight: "700" },
+  statTotal: { color: "#C8C3BC", fontSize: 17, fontWeight: "400" },
+  statLabel: { color: "#B6B0A8", fontSize: 11, textAlign: "center" },
+  statDivider: { width: 1, height: 47, backgroundColor: "#5A5148" },
+  accuracyLine: { flexDirection: "row", alignItems: "center", gap: 5 },
+  upArrow: { color: "#55B96B", fontSize: 11 },
+  quoteBlock: { alignItems: "center", marginTop: 24, marginBottom: 4 },
+  quoteMark: { alignSelf: "flex-start", marginLeft: 45, color: C.orange, fontFamily: "serif", fontSize: 36, lineHeight: 34 },
+  quoteText: { color: "#EEE8DF", fontFamily: "serif", fontStyle: "italic", fontSize: 17, lineHeight: 23, textAlign: "center", marginTop: -1, marginBottom: 13 },
+  pressed: { opacity: 0.76 },
 });

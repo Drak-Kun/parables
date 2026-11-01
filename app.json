@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Lexo",
+    "name": "Parables",
     "slug": "lexo",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "backgroundColor": "#0B0912",
+    "backgroundColor": "#050505",
     "scheme": "lexo",
     "plugins": [
       "expo-router"
