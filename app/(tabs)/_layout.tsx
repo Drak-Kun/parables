@@ -111,6 +111,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={UserRound} />,
         }}
       />
+      <Tabs.Screen name="my-words" options={{ href: null }} />
     </Tabs>
   );
 }
